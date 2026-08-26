@@ -55,19 +55,30 @@ Legend: ✅ Pass | ❌ Fail | ⬜ Not tested yet | ➖ N/A
 | 5.2 | Student cannot edit/delete another organizer's event | ➖ | No edit/delete UI built yet |
 | 5.3 | Logged-out user can view events but not create/register | ✅ | Create Event form is still visible when logged out (no route-level redirect), but submit is correctly blocked by both client-side check and Firestore rules. Recommend adding a redirect-to-login guard as a future improvement. |
 
-## 6. Navigation
+## 6. Admin Role
 
 | # | Test case | Result | Notes |
 |---|---|---|---|
-| 6.1 | Navbar links route correctly (logged in & logged out states) | ✅ | |
-| 6.2 | Logout clears session and redirects to /login | ✅ | |
+| 6.1 | Signup as Admin → Firestore user doc created with role=admin | ✅ | |
+| 6.2 | Admin Dashboard lists all registered users with name, email, role | ✅ | |
+| 6.3 | Admin can delete any event, regardless of which organizer created it | ✅ | Verified against updated Firestore rules allowing getUserRole() == "admin" |
+| 6.4 | Admin can send a broadcast notification to every user | ✅ | Recipient confirmed to receive it on their Notifications page |
+| 6.5 | Non-admin user (student/organizer) visiting /admin-dashboard sees "Access denied" | ✅ | Client-side role check; also protected at the Firestore rules layer |
+
+## 7. Navigation
+
+| # | Test case | Result | Notes |
+|---|---|---|---|
+| 7.1 | Navbar links route correctly (logged in & logged out states) | ✅ | |
+| 7.2 | Logout clears session and redirects to /login | ✅ | |
+| 7.3 | Navbar shows "Admin Dashboard" link only when the logged-in user's role is admin | ✅ | |
 
 ---
 
 ## Summary
 
-- **Total test cases:** 20
-- **Passed:** 19
+- **Total test cases:** 25
+- **Passed:** 24
 - **Not tested yet:** 0
 - **N/A:** 1
 - **Failed:** 0
