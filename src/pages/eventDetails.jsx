@@ -1,15 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { db, auth } from "../firebase/config";
-import {
-  doc,
-  getDoc,
-  collection,
-  addDoc,
-  query,
-  where,
-  getDocs,
-} from "firebase/firestore";
+import { doc, getDoc, collection, addDoc, query, where, getDocs } from "firebase/firestore";
 
 function EventDetails() {
   const { id } = useParams();
@@ -30,18 +22,10 @@ function EventDetails() {
         } else {
           setError("Event not found.");
         }
-
-        // check if current user already registered
         if (auth.currentUser) {
-          const q = query(
-            collection(db, "registrations"),
-            where("eventId", "==", id),
-            where("studentId", "==", auth.currentUser.uid)
-          );
+          const q = query(collection(db, "registrations"), where("eventId", "==", id), where("studentId", "==", auth.currentUser.uid));
           const querySnap = await getDocs(q);
-          if (!querySnap.empty) {
-            setIsRegistered(true);
-          }
+          if (!querySnap.empty) setIsRegistered(true);
         }
       } catch (err) {
         setError(err.message);
@@ -52,64 +36,58 @@ function EventDetails() {
     fetchEvent();
   }, [id]);
 
-const handleRegister = async () => {
-  setMessage("");
-  if (!auth.currentUser) {
-    setMessage("You must be logged in to register.");
-    return;
-  }
-  setRegistering(true);
-  try {
-    await addDoc(collection(db, "registrations"), {
-      eventId: id,
-      studentId: auth.currentUser.uid,
-      studentName: auth.currentUser.displayName || "",
-      studentEmail: auth.currentUser.email,
-      registeredAt: new Date().toISOString(),
-    });
+  const handleRegister = async () => {
+    setMessage("");
+    if (!auth.currentUser) {
+      setMessage("You must be logged in to register.");
+      return;
+    }
+    setRegistering(true);
+    try {
+      await addDoc(collection(db, "registrations"), {
+        eventId: id, studentId: auth.currentUser.uid,
+        studentName: auth.currentUser.displayName || "",
+        studentEmail: auth.currentUser.email,
+        registeredAt: new Date().toISOString(),
+      });
+      await addDoc(collection(db, "notifications"), {
+        userId: auth.currentUser.uid,
+        message: `You have successfully registered for "${event.title}".`,
+        eventId: id, isRead: false, createdAt: new Date().toISOString(),
+      });
+      setIsRegistered(true);
+    } catch (err) {
+      setMessage(err.message);
+    } finally {
+      setRegistering(false);
+    }
+  };
 
-    // notification যোগ
-    await addDoc(collection(db, "notifications"), {
-      userId: auth.currentUser.uid,
-      message: `You have successfully registered for "${event.title}".`,
-      eventId: id,
-      isRead: false,
-      createdAt: new Date().toISOString(),
-    });
-
-    setIsRegistered(true);
-  } catch (err) {
-    setMessage(err.message);
-  } finally {
-    setRegistering(false);
-  }
-};
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p style={{ color: "red" }}>{error}</p>;
+  if (loading) return <div className="page"><p className="muted">Loading…</p></div>;
+  if (error) return <div className="page"><p className="error-text">{error}</p></div>;
 
   return (
-    <div style={{ maxWidth: 500, margin: "40px auto" }}>
-      <Link to="/events">← Back to all events</Link>
-      <h2>{event.title}</h2>
-      <p>{event.description}</p>
-      <p>📅 {event.date} ⏰ {event.time}</p>
-      <p>📍 {event.venue}</p>
-      <p>🏷️ {event.category}</p>
-      <p>Organized by: {event.organizerName}</p>
+    <div className="page">
+      <Link to="/events" className="link">← Back to all events</Link>
+      <div className="auth-card" style={{ marginTop: 20 }}>
+        <span className="badge" style={{ transform: "none", marginBottom: 10 }}>{event.category}</span>
+        <h1 className="page-title" style={{ marginTop: 8 }}>{event.title}</h1>
+        <p className="page-subtitle">{event.description}</p>
+        <p className="ticket-meta">📅 {event.date} · ⏰ {event.time}</p>
+        <p className="ticket-meta">📍 {event.venue}</p>
+        <p className="ticket-meta">Organized by {event.organizerName}</p>
 
-      <br />
-
-      {isRegistered ? (
-        <p style={{ color: "green", fontWeight: "bold" }}>
-          You are registered ✅
-        </p>
-      ) : (
-        <button onClick={handleRegister} disabled={registering}>
-          {registering ? "Registering..." : "Register"}
-        </button>
-      )}
-
-      {message && <p style={{ color: "red" }}>{message}</p>}
+        <div style={{ marginTop: 20 }}>
+          {isRegistered ? (
+            <p className="success-text" style={{ display: "inline-block" }}>You are registered ✓</p>
+          ) : (
+            <button onClick={handleRegister} disabled={registering} className="btn btn-primary">
+              {registering ? "Registering…" : "Register for this event"}
+            </button>
+          )}
+        </div>
+        {message && <p className="error-text" style={{ marginTop: 12 }}>{message}</p>}
+      </div>
     </div>
   );
 }

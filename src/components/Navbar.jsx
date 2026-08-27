@@ -28,30 +28,32 @@ function Navbar() {
   };
 
   return (
-    <nav
-      style={{
-        display: "flex", gap: "16px", padding: "16px",
-        borderBottom: "1px solid #ccc", alignItems: "center", flexWrap: "wrap",
-      }}
-    >
-      <Link to="/events">All Events</Link>
+    <nav className="navbar">
+      <Link to="/events" className="navbar-brand">
+        <span className="navbar-brand-dot"></span>
+        Campus Events
+      </Link>
+
+      <Link to="/events" className="nav-link">All Events</Link>
 
       {user ? (
         <>
-          <Link to="/dashboard">Dashboard</Link>
-          <Link to="/create-event">Create Event</Link>
-          <Link to="/my-events">My Events</Link>
-          <Link to="/my-bookmarks">My Bookmarks</Link>
-          <Link to="/profile">Profile</Link>
-          <Link to="/notifications">Notifications</Link>
-          {role === "admin" && <Link to="/admin-dashboard">Admin Dashboard</Link>}
-          <span style={{ marginLeft: "auto" }}>{user.email}</span>
-          <button onClick={handleLogout}>Logout</button>
+          <Link to="/dashboard" className="nav-link">Dashboard</Link>
+          <Link to="/create-event" className="nav-link">Create Event</Link>
+          <Link to="/my-events" className="nav-link">My Events</Link>
+          <Link to="/my-bookmarks" className="nav-link">Bookmarks</Link>
+          <Link to="/profile" className="nav-link">Profile</Link>
+          <Link to="/notifications" className="nav-link">Notifications</Link>
+          {role === "admin" && (
+            <Link to="/admin-dashboard" className="nav-link nav-admin">Admin</Link>
+          )}
+          <span className="nav-user-email">{user.email}</span>
+          <button onClick={handleLogout} className="btn-logout">Logout</button>
         </>
       ) : (
         <>
-          <Link to="/login">Login</Link>
-          <Link to="/signup">Sign up</Link>
+          <Link to="/login" className="nav-link">Login</Link>
+          <Link to="/signup" className="nav-link">Sign up</Link>
         </>
       )}
     </nav>

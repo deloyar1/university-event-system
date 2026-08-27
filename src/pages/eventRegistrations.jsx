@@ -14,20 +14,11 @@ function EventRegistrations() {
     const fetchData = async () => {
       try {
         const eventDoc = await getDoc(doc(db, "events", id));
-        if (eventDoc.exists()) {
-          setEvent({ id: eventDoc.id, ...eventDoc.data() });
-        }
+        if (eventDoc.exists()) setEvent({ id: eventDoc.id, ...eventDoc.data() });
 
-        const q = query(
-          collection(db, "registrations"),
-          where("eventId", "==", id)
-        );
+        const q = query(collection(db, "registrations"), where("eventId", "==", id));
         const querySnap = await getDocs(q);
-        const regList = querySnap.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setRegistrations(regList);
+        setRegistrations(querySnap.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
       } catch (err) {
         setError(err.message);
       } finally {
@@ -37,35 +28,33 @@ function EventRegistrations() {
     fetchData();
   }, [id]);
 
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p style={{ color: "red" }}>{error}</p>;
+  if (loading) return <div className="page"><p className="muted">Loading…</p></div>;
+  if (error) return <div className="page"><p className="error-text">{error}</p></div>;
 
   return (
-    <div style={{ maxWidth: 600, margin: "40px auto" }}>
-      <Link to="/my-events">← Back to my events</Link>
-      <h2>Registrations for: {event?.title}</h2>
-      <p>Total registered: {registrations.length}</p>
+    <div className="page">
+      <Link to="/my-events" className="link">← Back to my events</Link>
+      <h1 className="page-title" style={{ marginTop: 16 }}>{event?.title}</h1>
+      <p className="page-subtitle">{registrations.length} student{registrations.length !== 1 ? "s" : ""} registered</p>
 
-      {registrations.length === 0 && <p>No one has registered yet.</p>}
-
-      <table border="1" cellPadding="8" style={{ width: "100%", marginTop: "16px" }}>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Registered At</th>
-          </tr>
-        </thead>
-        <tbody>
-          {registrations.map((reg) => (
-            <tr key={reg.id}>
-              <td>{reg.studentName || "N/A"}</td>
-              <td>{reg.studentEmail}</td>
-              <td>{new Date(reg.registeredAt).toLocaleString()}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      {registrations.length === 0 ? (
+        <div className="empty-state">No one has registered yet.</div>
+      ) : (
+        <table className="data-table">
+          <thead>
+            <tr><th>Name</th><th>Email</th><th>Registered at</th></tr>
+          </thead>
+          <tbody>
+            {registrations.map((reg) => (
+              <tr key={reg.id}>
+                <td>{reg.studentName || "—"}</td>
+                <td>{reg.studentEmail}</td>
+                <td>{new Date(reg.registeredAt).toLocaleString()}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 }

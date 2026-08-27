@@ -2,7 +2,7 @@ import { useState } from "react";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import { auth, db } from "../firebase/config";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 export default function Signup() {
   const [email, setEmail] = useState("");
@@ -31,41 +31,46 @@ export default function Signup() {
   };
 
   return (
-    <div style={{ maxWidth: 400, margin: "60px auto" }}>
-      <h2>Sign up</h2>
-      <form onSubmit={handleSignup}>
-        <input
-          placeholder="Full name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-        />
-        <br /><br />
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <br /><br />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <br /><br />
-        <select value={role} onChange={(e) => setRole(e.target.value)}>
-          <option value="student">Student</option>
-          <option value="organizer">Organizer</option>
-          <option value="admin">Admin</option>
-        </select>
-        <br /><br />
-        {error && <p style={{ color: "red" }}>{error}</p>}
-        <button type="submit">Sign up</button>
-      </form>
+    <div className="page-narrow">
+      <h1 className="page-title">Create your account</h1>
+      <p className="page-subtitle">Join as a student or organizer.</p>
+      <div className="auth-card">
+        <form onSubmit={handleSignup}>
+          <input
+            className="field"
+            placeholder="Full name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
+          <input
+            type="email"
+            className="field"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+          <input
+            type="password"
+            className="field"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+          <select className="field" value={role} onChange={(e) => setRole(e.target.value)}>
+            <option value="student">Student</option>
+            <option value="organizer">Organizer</option>
+            <option value="admin">Admin</option>
+          </select>
+          {error && <p className="error-text">{error}</p>}
+          <button type="submit" className="btn btn-primary btn-block">Sign up</button>
+        </form>
+      </div>
+      <p className="page-subtitle" style={{ marginTop: 16 }}>
+        Already have an account? <Link to="/login" className="link">Log in</Link>
+      </p>
     </div>
   );
 }

@@ -3,13 +3,7 @@ import { db, auth } from "../firebase/config";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 
-const CATEGORY_OPTIONS = [
-  "Seminar",
-  "Workshop",
-  "Cultural",
-  "Sports",
-  "Career",
-];
+const CATEGORY_OPTIONS = ["Seminar", "Workshop", "Cultural", "Sports", "Career"];
 
 function Profile() {
   const [user, setUser] = useState(null);
@@ -20,18 +14,13 @@ function Profile() {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      if (!currentUser) {
-        setLoading(false);
-        return;
-      }
+      if (!currentUser) { setLoading(false); return; }
       setUser(currentUser);
       try {
         const userDoc = await getDoc(doc(db, "users", currentUser.uid));
         if (userDoc.exists() && userDoc.data().interest) {
           setSelectedInterests(userDoc.data().interest);
         }
-      } catch (err) {
-        console.error(err);
       } finally {
         setLoading(false);
       }
@@ -41,9 +30,7 @@ function Profile() {
 
   const toggleInterest = (category) => {
     setSelectedInterests((prev) =>
-      prev.includes(category)
-        ? prev.filter((c) => c !== category)
-        : [...prev, category]
+      prev.includes(category) ? prev.filter((c) => c !== category) : [...prev, category]
     );
   };
 
@@ -52,12 +39,8 @@ function Profile() {
     setSaving(true);
     setMessage("");
     try {
-      await setDoc(
-        doc(db, "users", user.uid),
-        { interest: selectedInterests },
-        { merge: true }
-      );
-      setMessage("Interests saved successfully!");
+      await setDoc(doc(db, "users", user.uid), { interest: selectedInterests }, { merge: true });
+      setMessage("Interests saved.");
     } catch (err) {
       setMessage(err.message);
     } finally {
@@ -65,34 +48,29 @@ function Profile() {
     }
   };
 
-  if (loading) return <p>Loading...</p>;
-  if (!user) return <p style={{ color: "red" }}>You must be logged in.</p>;
+  if (loading) return <div className="page"><p className="muted">Loading…</p></div>;
+  if (!user) return <div className="page"><p className="error-text">You must be logged in.</p></div>;
 
   return (
-    <div style={{ maxWidth: 400, margin: "60px auto" }}>
-      <h2>My Interests</h2>
-      <p>Select the categories you're interested in:</p>
-
-      {CATEGORY_OPTIONS.map((category) => (
-        <div key={category}>
-          <label>
+    <div className="page-narrow">
+      <h1 className="page-title">My interests</h1>
+      <p className="page-subtitle">Pick categories to personalize your event feed.</p>
+      <div className="auth-card">
+        {CATEGORY_OPTIONS.map((category) => (
+          <label key={category} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0", borderBottom: "1px solid var(--line)", fontSize: 15 }}>
             <input
               type="checkbox"
               checked={selectedInterests.includes(category)}
               onChange={() => toggleInterest(category)}
             />
-            {" "}
             {category}
           </label>
-        </div>
-      ))}
-
-      <br />
-      <button onClick={handleSave} disabled={saving}>
-        {saving ? "Saving..." : "Save Interests"}
-      </button>
-
-      {message && <p style={{ color: "green" }}>{message}</p>}
+        ))}
+        <button onClick={handleSave} disabled={saving} className="btn btn-primary" style={{ marginTop: 18 }}>
+          {saving ? "Saving…" : "Save interests"}
+        </button>
+        {message && <p className="success-text" style={{ marginTop: 12 }}>{message}</p>}
+      </div>
     </div>
   );
 }
