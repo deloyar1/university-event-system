@@ -12,6 +12,7 @@ import MyBookmarks from "./pages/myBookmarks";
 import Profile from "./pages/profile";
 import Notifications from "./pages/notifications";
 import AdminDashboard from "./pages/adminDashboard";
+import Home from "./pages/home";
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
         <Route path="/profile" element={<Profile />} />
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/admin-dashboard" element={<AdminDashboard />} />
+        <Route path="/" element={<Home />} />
       </Routes>
     </BrowserRouter>
   );
