@@ -10,6 +10,7 @@ function CreateEvent() {
   const [time, setTime] = useState("");
   const [venue, setVenue] = useState("");
   const [category, setCategory] = useState("Seminar");
+  const [capacity, setCapacity] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
@@ -24,7 +25,14 @@ function CreateEvent() {
 
     try {
       const eventRef = await addDoc(collection(db, "events"), {
-        title, description, date, time, venue, category,
+        title,
+        description,
+        date,
+        time,
+        venue,
+        category,
+        capacity: capacity ? parseInt(capacity, 10) : 0,
+        registeredCount: 0,
         organizerId: auth.currentUser.uid,
         organizerName: auth.currentUser.displayName || auth.currentUser.email,
         createdAt: new Date().toISOString(),
@@ -40,7 +48,9 @@ function CreateEvent() {
           addDoc(collection(db, "notifications"), {
             userId: docSnap.id,
             message: `New event "${title}" matches your interest in ${category}.`,
-            eventId: eventRef.id, isRead: false, createdAt: new Date().toISOString(),
+            eventId: eventRef.id,
+            isRead: false,
+            createdAt: new Date().toISOString(),
           })
         );
       await Promise.all(notifyPromises);
@@ -68,6 +78,14 @@ function CreateEvent() {
             <option value="Sports">Sports</option>
             <option value="Career">Career</option>
           </select>
+          <input
+            className="field"
+            type="number"
+            min="1"
+            placeholder="Seat capacity (leave blank for unlimited)"
+            value={capacity}
+            onChange={(e) => setCapacity(e.target.value)}
+          />
           {error && <p className="error-text">{error}</p>}
           <button type="submit" className="btn btn-primary btn-block">Create event</button>
         </form>

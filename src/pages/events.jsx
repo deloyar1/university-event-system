@@ -3,6 +3,7 @@ import { db, auth } from "../firebase/config";
 import { collection, getDocs, addDoc, query, where, doc, getDoc } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { Link } from "react-router-dom";
+import { computeMatchScores } from "../utils/recommendation";
 
 const MONTHS = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
 
@@ -14,6 +15,7 @@ function Events() {
   const [user, setUser] = useState(null);
   const [bookmarkedIds, setBookmarkedIds] = useState([]);
   const [userInterests, setUserInterests] = useState([]);
+  const [matchScores, setMatchScores] = useState({});
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -55,6 +57,13 @@ function Events() {
     fetchUserData();
   }, [user]);
 
+  // recompute TF-IDF match scores whenever events or interests change
+  useEffect(() => {
+    if (events.length === 0) return;
+    const scores = computeMatchScores(events, userInterests);
+    setMatchScores(scores);
+  }, [events, userInterests]);
+
   const handleBookmark = async (eventId) => {
     if (!user) {
       alert("You must be logged in to bookmark events.");
@@ -80,10 +89,11 @@ function Events() {
     return matchesSearch && matchesCategory;
   });
 
+  // sort by TF-IDF match score, highest first
   filteredEvents = [...filteredEvents].sort((a, b) => {
-    const aMatch = userInterests.includes(a.category) ? 1 : 0;
-    const bMatch = userInterests.includes(b.category) ? 1 : 0;
-    return bMatch - aMatch;
+    const scoreA = matchScores[a.id] || 0;
+    const scoreB = matchScores[b.id] || 0;
+    return scoreB - scoreA;
   });
 
   if (loading) return <div className="page"><p className="muted">Loading events…</p></div>;
@@ -117,8 +127,11 @@ function Events() {
       )}
 
       {filteredEvents.map((event) => {
-        const isRecommended = userInterests.includes(event.category);
+        const score = matchScores[event.id] || 0;
+        const isRecommended = score >= 20;
         const dateObj = event.date ? new Date(event.date) : null;
+        const seatsLeft = event.capacity ? event.capacity - (event.registeredCount || 0) : null;
+
         return (
           <div key={event.id} className={`ticket ${isRecommended ? "recommended" : ""}`}>
             <div className="ticket-stub">
@@ -132,11 +145,20 @@ function Events() {
                 <div>
                   <h3 className="ticket-title">{event.title}</h3>
                 </div>
-                {isRecommended && <span className="badge">For you</span>}
+                {userInterests.length > 0 && (
+                  <span className="badge" style={{ transform: "none" }}>
+                    {score}% Match
+                  </span>
+                )}
               </div>
               <p className="ticket-desc">{event.description}</p>
               <p className="ticket-meta">📍 {event.venue} · 🏷️ {event.category}</p>
               <p className="ticket-meta">Organized by {event.organizerName}</p>
+              {event.capacity ? (
+                <p className="ticket-meta">
+                  🎟️ {seatsLeft > 0 ? `${seatsLeft} seat${seatsLeft !== 1 ? "s" : ""} left` : "Full"}
+                </p>
+              ) : null}
               <div className="ticket-actions">
                 <Link to={`/events/${event.id}`} className="link">View details</Link>
                 {bookmarkedIds.includes(event.id) ? (
